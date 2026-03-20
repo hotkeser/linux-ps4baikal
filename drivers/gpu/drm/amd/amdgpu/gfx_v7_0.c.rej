@@ -9,3 +9,13 @@
  		adev->gfx.config.max_texture_channel_caches = 4; // ??
  		adev->gfx.config.max_gprs = 256;
  		adev->gfx.config.max_gs_threads = 32; // ??
+
+
+	case CHIP_LIVERPOOL:
+		buffer[count++] = cpu_to_le32(0x2a00161a);
+		buffer[count++] = cpu_to_le32(0x00000000);
+		break;
+	case CHIP_GLADIUS:
+		buffer[count++] = cpu_to_le32(0x2a00161a);
+		buffer[count++] = cpu_to_le32(0x0000002e);
+		break;

@@ -5213,14 +5213,6 @@ static void gfx_v7_0_set_gfx_eop_interrupt_state(struct amdgpu_device *adev,
 		cp_int_cntl |= CP_INT_CNTL_RING0__TIME_STAMP_INT_ENABLE_MASK;
 		WREG32(mmCP_INT_CNTL_RING0, cp_int_cntl);
 		break;
-	case CHIP_LIVERPOOL:
-		buffer[count++] = cpu_to_le32(0x2a00161a);
-		buffer[count++] = cpu_to_le32(0x00000000);
-		break;
-	case CHIP_GLADIUS:
-		buffer[count++] = cpu_to_le32(0x2a00161a);
-		buffer[count++] = cpu_to_le32(0x0000002e);
-		break;
 	default:
 		break;
 	}

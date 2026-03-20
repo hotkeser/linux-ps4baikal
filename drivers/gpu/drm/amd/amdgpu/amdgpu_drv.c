@@ -41,6 +41,10 @@
 #include <linux/suspend.h>
 #include <linux/vga_switcheroo.h>
 
+#ifdef CONFIG_X86_PS4
+#include <asm/ps4.h>
+#endif
+
 #include "amdgpu.h"
 #include "amdgpu_amdkfd.h"
 #include "amdgpu_dma_buf.h"
@@ -2001,6 +2005,12 @@ static const struct pci_device_id pciidlist[] = {
 	{0x1002, 0x985D, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_MULLINS|AMD_IS_MOBILITY|AMD_IS_APU},
 	{0x1002, 0x985E, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_MULLINS|AMD_IS_MOBILITY|AMD_IS_APU},
 	{0x1002, 0x985F, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_MULLINS|AMD_IS_MOBILITY|AMD_IS_APU},
+	/* Liverpool */
+	{0x1002, 0x9920, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_LIVERPOOL|AMD_IS_APU},
+	{0x1002, 0x9922, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_LIVERPOOL|AMD_IS_APU},
+	{0x1002, 0x9923, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_LIVERPOOL|AMD_IS_APU},
+	/* Gladius */
+	{0x1002, 0x9924, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_GLADIUS|AMD_IS_APU},
 	/* topaz */
 	{0x1002, 0x6900, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_TOPAZ},
 	{0x1002, 0x6901, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_TOPAZ},

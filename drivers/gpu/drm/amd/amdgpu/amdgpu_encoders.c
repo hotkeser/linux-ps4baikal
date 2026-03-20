@@ -32,8 +32,7 @@
 #include "atombios_encoders.h"
 
 #ifdef CONFIG_X86_PS4
-int 
-ps4_bridge_register(struct drm_connector *connector,
+int ps4_bridge_register(struct drm_connector *connector,
 	     	    struct drm_encoder *encoder);
 
 static void amdgpu_maybe_add_bridge(struct drm_connector *connector,

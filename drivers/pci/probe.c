@@ -2871,6 +2871,7 @@ int pci_scan_slot(struct pci_bus *bus, int devfn)
 {
 	struct pci_dev *dev;
 	int fn = 0, nr = 0;
+	u32 l;
 
 	if (only_one_child(bus) && (devfn > 0))
 		return 0; /* Already scanned the entire slot */
