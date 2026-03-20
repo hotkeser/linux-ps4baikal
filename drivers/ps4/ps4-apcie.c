@@ -17,6 +17,11 @@
 
 #include "aeolia.h"
 
+
+#define     MSI_DATA_VECTOR_SHIFT	0
+#define	    MSI_DATA_VECTOR(v)		(((u8)v) << MSI_DATA_VECTOR_SHIFT)
+#define     MSI_DATA_VECTOR_MASK	0xffffff00
+
 /* #define QEMU_HACK_NO_IOMMU */
 
 /* Number of implemented MSI registers per function */
@@ -62,12 +67,20 @@ static void apcie_config_msi(struct apcie_dev *sc, u32 func, u32 subfunc,
 
 	glue_clear_mask(sc, APCIE_REG_MSI_CONTROL, APCIE_REG_MSI_CONTROL_ENABLE);
 	/* Unknown */
+	sc_dbg("glue_write32 to offset, value (%08x, %08x, %08x)\n", sc->bar4, APCIE_REG_MSI(0x8), 0xffffffff);
 	glue_write32(sc, APCIE_REG_MSI(0x8), 0xffffffff);
 	/* Unknown */
+	sc_dbg("glue_write32 to offset, value (%08x, %08x, %08x)\n", sc->bar4, APCIE_REG_MSI(0xc + (func << 2)), 0xB7FFFF00 + func * 16);
 	glue_write32(sc, APCIE_REG_MSI(0xc + (func << 2)), 0xB7FFFF00 + func * 16);
+
+	sc_dbg("glue_write32 to offset, value (%08x, %08x, %08x)\n", sc->bar4, APCIE_REG_MSI_ADDR(func), addr);
 	glue_write32(sc, APCIE_REG_MSI_ADDR(func), addr);
 	/* Unknown */
+
+	sc_dbg("glue_write32 to offset, value (%08x, %08x, %08x)\n", sc->bar4, APCIE_REG_MSI(0xcc + (func << 2)), 0);
 	glue_write32(sc, APCIE_REG_MSI(0xcc + (func << 2)), 0);
+
+	sc_dbg("glue_write32 to offset, value (%08x, %08x, %08x)\n", sc->bar4, APCIE_REG_MSI_DATA_HI(func),  data & 0xffe0);
 	glue_write32(sc, APCIE_REG_MSI_DATA_HI(func), data & 0xffe0);
 
 	if (func < 4) {
@@ -83,6 +96,8 @@ static void apcie_config_msi(struct apcie_dev *sc, u32 func, u32 subfunc,
 	} else {
 		offset = 0xa0 + ((func - 5) << 4) + (subfunc << 2);
 	}
+
+	sc_dbg("glue_write32 to offset, value (%08x, %08x, %08x)\n", sc->bar4,  APCIE_REG_MSI_DATA_LO(offset), data & 0x1f);
 	glue_write32(sc, APCIE_REG_MSI_DATA_LO(offset), data & 0x1f);
 
 	if (func == AEOLIA_FUNC_ID_PCIE)
@@ -154,7 +169,7 @@ static struct irq_chip apcie_msi_controller = {
 	.irq_retrigger = irq_chip_retrigger_hierarchy,
 	.irq_compose_msi_msg = irq_msi_compose_msg,
 	.irq_write_msi_msg = apcie_msi_write_msg,
-	.flags = IRQCHIP_SKIP_SET_WAKE,
+	.flags = IRQCHIP_SKIP_SET_WAKE | IRQCHIP_AFFINITY_PRE_STARTUP,
 };
 
 static irq_hw_number_t apcie_msi_get_hwirq(struct msi_domain_info *info,
@@ -168,7 +183,7 @@ static int apcie_msi_init(struct irq_domain *domain,
 			 irq_hw_number_t hwirq, msi_alloc_info_t *arg)
 {
 	struct irq_data *data;
-	pr_devel("apcie_msi_init(%p, %p, %d, 0x%lx, %p)\n", domain, info, virq, hwirq, arg);
+	pr_err("apcie_msi_init(%p, %p, %d, 0x%lx, %p)\n", domain, info, virq, hwirq, arg);
 
 	data = irq_domain_get_irq_data(domain, virq);
 	irq_domain_set_info(domain, virq, hwirq, info->chip, info->chip_data,
@@ -277,14 +292,23 @@ int apcie_assign_irqs(struct pci_dev *dev, int nvec)
 	}
 #endif
 
+	desc = alloc_msi_entry(bare_dev, 1, NULL);
+
+	info.desc = desc;
+	info.data = sc;
+
+	dev_info(&dev->dev, "apcie_assign_irqs(%d) (%d)\n", nvec, info.hwirq);
+
 	ret = irq_domain_alloc_irqs(sc->irqdomain, nvec, NUMA_NO_NODE, &info);
 	if (ret >= 0) {
+		dev_info(&dev->dev, "irq_domain_alloc_irqs = %x\n", ret);
 		dev->irq = ret;
+		desc->irq = ret;
 		ret = nvec;
 	}
 
 fail:
-	dev_dbg(&dev->dev, "apcie_assign_irqs returning %d\n", ret);
+	dev_info(&dev->dev, "apcie_assign_irqs returning %d\n", ret);
 	if (sc_dev)
 		pci_dev_put(sc_dev);
 	return ret;
@@ -455,10 +479,11 @@ static int apcie_probe(struct pci_dev *dev, const struct pci_device_id *id) {
 
 	if ((ret = apcie_glue_init(sc)) < 0)
 		goto free_bars;
-	if ((ret = apcie_uart_init(sc)) < 0)
-		goto remove_glue;
+	// TODO (ps4patches): figure out why this dies a horrible and painful death.
+	//if ((ret = apcie_uart_init(sc)) < 0)
+	//	goto remove_glue;
 	if ((ret = apcie_icc_init(sc)) < 0)
-		goto remove_uart;
+		goto remove_glue;
 
 	apcie_initialized = true;
 	return 0;

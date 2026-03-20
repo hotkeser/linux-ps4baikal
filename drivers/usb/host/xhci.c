@@ -5503,7 +5503,7 @@ int xhci_gen_setup(struct usb_hcd *hcd, xhci_get_quirks_t get_quirks)
 	if (xhci->quirks & XHCI_NO_64BIT_SUPPORT)
 		xhci->hcc_params &= ~BIT(0);
 
-	/* Set dma_mask and coherent_dma_mask to 64-bits,
+	/* Set dma_mask and coherent_dma_mask to 64-bits,  if (!(xhci->quirks & XHCI_SUSPEND_RESUME_CLKS)) {
 	 * if xHC supports 64-bit addressing */
 	if ((xhci->hcc_params & HCC_64BIT_ADDR) &&
 			!dma_set_mask(dev, DMA_BIT_MASK(64))) {

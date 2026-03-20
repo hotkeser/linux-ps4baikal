@@ -2927,6 +2927,8 @@ struct device_queue_manager *device_queue_manager_init(struct kfd_node *dev)
 
 	switch (dev->adev->asic_type) {
 	/* HWS is not available on Hawaii. */
+	case CHIP_LIVERPOOL:
+	case CHIP_GLADIUS:
 	case CHIP_HAWAII:
 	/* HWS depends on CWSR for timely dequeue. CWSR is not
 	 * available on Tonga.
